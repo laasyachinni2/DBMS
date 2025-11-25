@@ -1,0 +1,105 @@
+create table customers1 (
+    c_id number primary key,
+    c_name varchar2(50) not null,
+    email varchar2(50) not  null unique 
+);
+insert into customers1
+values
+(1,'Santhosh','santhosh@gmail.com'),
+(2,'Chitti','chitti@gmail.com'),
+(3,'Harshith','harshith@gmail.com'),
+(4,'Mounika','mounika@gmail.com'),
+(5,'Ammu','ammu@gmail.com');
+
+create table products1
+(
+    p_id number primary key,
+    p_name varchar2(50) not null,
+    price number not null
+);
+insert into  products1 values 
+(1,'Laptop',80000),
+(2,'Mobile',25000),
+(3,'Mouse',1500),
+(4,'Kaeyboard',3000);
+TRUNCATE table products1;
+
+create table orders1
+(
+    ord_id number primary key,
+    customer_id number references customers1(c_id),
+    product_id number references products1(p_id),
+    quantity number not null
+);
+
+insert into orders1 values
+(101,1,3,10),
+(102,4,1,5),
+(103,3,4,100);
+
+create table invoices
+(
+    inv_id varchar2(50) primary key,
+    order_id number references orders1(ord_id),
+    invoice_id date default current_date,
+    total_amount number not null
+);
+set serveroutput on;
+
+create sequence inv_seq start with 1 increment by 1;
+
+create or replace function
+get_inv_id return varchar2 is
+begin
+    return 'INV-'||lpad(inv_seq.nextval,5,0);
+end;
+/
+create or replace trigger
+inv_generator after insert  on orders1
+for each row
+begin
+    insert into invoices(inv_id,order_id,total_amount) 
+    values (
+        get_inv_id(),
+        :new.ord_id,
+        :new.quantity*(select price from products1 where p_id=:new.product_id)
+    );
+
+end;
+/
+
+create view employee_ranks
+AS with cte as
+(
+    select id,name,salary,department, rank() over (PARTITION by department order by salary desc)
+    as RANK
+    from employee
+    where salary is not null 
+) select * from cte where rank=1;
+
+select * from EMPLOYEE_RANKS;
+
+
+select * from customers1;
+
+
+create view data_orders as
+select c.c_name,p.p_name,count(*) as cnt 
+from 
+customers c 
+join 
+orders o
+on c.c_id=o.customer_id 
+join 
+products p
+on o.product_id=p.p_id
+group by c.c_name ,p.p_name;
+
+select * from data_orders;
+
+create or replace view ops_employees as
+select id,name,salary,department,gender 
+from employee where department ='Operations';
+
+update ops_employees set gender='Male' where id=117;
+select * from ops_employees;
