@@ -1,0 +1,83 @@
+create table customers(
+    c_id number primary key,
+    c_name varchar2(50)
+);
+TRUNCATE table customers;
+
+create table products(
+    p_id number primary key,
+    p_name varchar2(50),
+    price number
+);
+-- drop table orders;
+
+create table orders (
+    ord_id varchar2(50) primary key,
+    customer_id number references customers(c_id),
+    product_id number references products(p_id),
+    order_date date default current_date
+);
+insert into customers values(1,'Bablika'),(2,'Umadin'),(3,'Harshmaggs'),(4,'Chittisha');
+insert into products values(101,'laptop',80000),(102,'Mobile',25000),(103,'Earbuds',1500);
+select * from products;
+select * from customers;
+
+create or replace function new_data return varchar2 is 
+BEGIN
+    return 'ORD-'|| lpad(new_data_seq.nextval,15,0);
+end;
+/
+alter SEQUENCE new_data_seq restart start with 1;
+create SEQUENCE new_data_seq start with 1 increment by 1;
+insert into orders (ord_id,CUSTOMER_ID,product_id) values (new_data(),1,101),(new_data(),2,103),(new_data(),3,101),(new_data(),4,102);
+TRUNCATE table orders;
+select * from orders;
+
+create or replace procedure sri(a in number) IS
+begin 
+    for i IN 1..n LOOP
+      DBMS_OUTPUT.PUT_LINE(i);
+    END LOOP; 
+end;
+/
+exec sri(10);
+set SERVEROUTPUT on;
+
+DECLARE 
+    input number;
+    output number;
+BEGIN   
+    input:=10;
+    xyz(input,output);
+    DBMS_OUTPUT.PUT_LINE(output);
+end;
+/
+create or replace procedure xyz(a in number,b out number)
+is  
+begin 
+    b:=a*a;
+end;
+/
+CREATE OR REPLACE PROCEDURE print_factors_count(a IN INTEGER, b IN INTEGER) IS
+BEGIN
+    FOR num IN a..b LOOP
+        DBMS_OUTPUT.PUT_LINE('Number: ' || num || 
+                             ' Factor Count: ' || get_factor_count(num));
+    END LOOP;
+END;
+/
+CREATE OR REPLACE FUNCTION get_factor_count(n IN INTEGER) RETURN INTEGER IS
+    count INTEGER := 0;
+BEGIN
+    FOR i IN 1..n LOOP
+        IF MOD(n, i) = 0 THEN
+            count := count + 1;
+        END IF;
+    END LOOP;
+    RETURN count;
+END;
+/
+BEGIN
+    print_factors_count(10, 15);
+END;
+/
